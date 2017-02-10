@@ -1,0 +1,30 @@
+{
+  "name": "reqx",
+  "version": "1.0.0",
+  "description": "lite wrapper for node http(s).request that is stream friendly",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bluebird": "^3.4.7",
+    "concat-stream": "^1.6.0",
+    "duplexify": "^3.5.0",
+    "from2": "^2.3.0",
+    "isstream": "^0.1.2",
+    "js-liber": "^1.2.1",
+    "pump": "^1.0.2",
+    "through2": "^2.0.3"
+  },
+  "jest": {
+    "testEnvironment": "node"
+  },
+  "devDependencies": {
+    "jest": "^18.1.0"
+  },
+  "engines": {
+    "node": ">=6.8.0"
+  }
+}
