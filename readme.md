@@ -27,7 +27,7 @@ it returns the clientRequest instance itself for chaining invocation, and does n
 
 #### collect
 
-can accept a collector function as argument. This function is return a writable stream to collect stream data.
+can accept a collector function as argument. This function should return a writable stream to collect stream data.
 
 #### onResponse
 
