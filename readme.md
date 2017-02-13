@@ -13,7 +13,7 @@ $ npm install --save reqx
 
 Instead of accepting a single options argument like official http(s).request method dose, reqx basically converts each option key to an api method that returns the reqx object itself so they can be chainable.
 
-As a result, every options in [official node documentation](https://nodejs.org/dist/latest-v6.x/docs/api/http.html#http_http_request_options_callback) is supported, except that you can use `uri` method to pass in a valid uri string to avoid pass in `protocol`, `host`, `hostname`, `path` and `port` individually. Besides that, there also are common http method apis that spare you to use `method` option api, such as `get`, `post`, `put`,`del`,`patch` and `head`.
+As a result, every options in [official node documentation](https://nodejs.org/dist/latest-v6.x/docs/api/http.html#http_http_request_options_callback) is supported, except that you can use `uri` method to pass in a valid uri string to avoid pass in `protocol`, `host`, `hostname`, `path` and `port` individually. Additionally, you can use common http method apis to spare the usage of `method` option api, such as `get`, `post`, `put`,`del`,`patch` and `head`.
 
 Use `send` method to initiate a request, and a wrapped [http.ClientRequest](https://nodejs.org/dist/latest-v6.x/docs/api/http.html#http_class_http_clientrequest) instance is returned, which exports several methods to work with streams conveniently.
 
