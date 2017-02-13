@@ -12,6 +12,7 @@ var pump = require('pump');
 var concatStream = require('concat-stream');
 var slice = require('js-liber/slice');
 var isStream = require('isstream');
+var debug = require('debug')('reqx');
 
 var HTTP_METHODS = [
   'get',
@@ -31,6 +32,9 @@ var reqx = makeBuilder(sendRequest, {
   '?sendType': [function(type) {
     return ['html', 'xml', 'text', 'form', 'json'].indexOf(type) > -1;
   }, 'form'],
+  '?redirect': [function(r) {
+    return t.isBoolean(r) || t.isNumber(r);
+  }, false],
   '?method': [function(m) {
     return t.isString(m) && HTTP_METHODS.indexOf(m.toLowerCase()) > -1;
   }, 'get'],
@@ -75,25 +79,27 @@ reqx = makeBuilder.mixin(reqx, {
 
 module.exports = reqx;
 
-function sendRequest(options, data/*, builder*/) {
+
+
+function sendRequest(options, data, reqxBuilder) {
+  var dataParam = data;
+  var redirect = normalizeRedirect(options.redirect);
   var _tmp = normalizeOptions(options, data);
   var requestOptions = _tmp[0];
   data = _tmp[1];
   var requestFn = requestOptions.protocol === 'https:' ? https.request.bind(https) : http.request.bind(http);
   var sendType = requestOptions.sendType;
   var clientRequest, promise;
+
   delete requestOptions.sendType;
 
-  console.dir(requestOptions, {
-    depth: null
-  });
+  debug('requestOptions: %j', requestOptions);
 
   clientRequest = requestFn(requestOptions);
 
   promise = new BPromise(function(resolve, reject) {
     clientRequest.on('response', function(response) {
       if (response) {
-        // response.reqx = builder;
         return resolve(response);
       }
       reject(new Error('[reqx]empty response!'));
@@ -109,12 +115,29 @@ function sendRequest(options, data/*, builder*/) {
     });
   });
 
-  clientRequest.response = promise;
-  // clientRequest.reqx = builder;
+  clientRequest.response = handleRedirect(clientRequest, promise, redirect, dataParam, reqxBuilder);
 
   extendClinetRequest(clientRequest);
 
   return clientRequest;
+}
+
+
+function handleRedirect(request, responsePromise, redirect, data, reqx) {
+  if (redirect <= 0) {
+    return responsePromise;
+  }
+
+  reqx.redirect(redirect - 1);
+
+  return responsePromise.then(function(res) {
+    if (isRedirect(res.statusCode)) {
+      debug('redirect to => %s', res.headers.location);
+      return reqx.uri(res.headers.location).send(data).response;
+    } else {
+      return res;
+    }
+  });
 }
 
 function extendClinetRequest(crq) {
@@ -187,6 +210,13 @@ function isStrOrBufferArr(o) {
     (t.isArray(o) && (
       o.every(isStrOrBuffer)
     ));
+}
+
+function normalizeRedirect(redirect) {
+  if (t.isBoolean(redirect)) {
+    return redirect === true ? 10 : 0;
+  }
+  return redirect < 0 ? 0 : redirect;
 }
 
 function normalizeOptions(options, data) {
@@ -297,15 +327,13 @@ function makePipeline(res, pumpedQ, collectWs) {
   return result;
 }
 
-// function isRedirect(statusCode) {
-//   return statusCode === 301 || statusCode === 302 || statusCode === 307 || statusCode === 308;
-// }
+function isRedirect(statusCode) {
+  return statusCode === 301 || statusCode === 302 || statusCode === 307 || statusCode === 308;
+}
 
 // if (require.main === module) {
-
-
-// var through = require('through2');
-//   var request = reqx.get('https://www.google.com').send({
+//   var through = require('through2');
+//   var request = reqx.get('https://www.google.com').redirect(true).send({
 //     a: 1,
 //     b: 2
 //   });
@@ -313,39 +341,16 @@ function makePipeline(res, pumpedQ, collectWs) {
 //   var strThrough = through();
 //   strThrough.setEncoding('utf8');
 
-//   function redirect(request, maxCount) {
-//     maxCount = (isNaN(maxCount) || maxCount < 0) ? 10 : maxCount;
-
-//     function doRequest() {
-//       return request.onResponse(function(res) {
-//         if (maxCount > 0 && isRedirect(res.statusCode)) {
-//           maxCount -= 1;
-//           request = request.reqx.uri(res.headers.location).send();
-//           return doRequest();
-//         }
-//         return request;
+//   request.pump(strThrough).collect(function(res, done) {
+//     return concatStream(function(body) {
+//       done({
+//         statusCode: res.statusCode,
+//         headers: res.headers,
+//         body: body
 //       });
-//     }
+//     });
+//   }).then(console.log.bind(console)).catch(console.log.bind(console));
 
-//     return doRequest();
-//   }
-
-
-//   redirect(request, 0).then(function(req) {
-//     req.pump(strThrough).collect(function(res, done) {
-//       return concatStream(function(body) {
-//         done({
-//           headers: res.headers,
-//           body: body
-//         });
-//       });
-//     }).then(console.log.bind(console)).catch(console.log.bind(console));
-//   });
-//   // .onResponse(function(res){
-//   // if(res.statusCode > 300 && res.statusCode < 400){
-//   //   return 
-//   // }
-//   // })
 
 //   // request.abort();
 // }

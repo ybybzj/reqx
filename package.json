@@ -1,16 +1,22 @@
 {
   "name": "reqx",
   "version": "1.0.0",
-  "description": "lite wrapper for node http(s).request that is stream friendly",
+  "description": "lite wrapper for node http(s).request that is stream-friendly",
+  "repository": "https://github.com/ybybzj/reqx.git",
   "main": "index.js",
   "scripts": {
     "test": "jest"
   },
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "request",
+    "stream"
+  ],
+  "author": "Jackzj <ybybzj@gmail.com>",
+  "license": "MIT",
   "dependencies": {
     "bluebird": "^3.4.7",
     "concat-stream": "^1.6.0",
+    "debug": "^2.6.1",
     "duplexify": "^3.5.0",
     "from2": "^2.3.0",
     "isstream": "^0.1.2",
