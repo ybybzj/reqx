@@ -176,22 +176,25 @@ function extendClinetRequest(crq) {
       return crq._getPumpedQPromise().then(function(pair) {
         var res = pair[0],
           pumpedQ = pair[1];
-
+        collector = t.isFunction(collector) ? collector(res) : collector;
         return new BPromise(function(resolve, reject) {
-          var collectWs = t.isFunction(collector) ?
-            collector(res, resolve, reject) :
+  
+          var collectWs =  isStream.isWritable(collector) ? collector :
             concatStream(function(body) {
-              resolve({
+              var rtn = {
                 statusCode: res.statusCode,
                 response: res,
                 body: body
-              });
+              };
+
+              resolve(rtn);
             });
 
           var pipeline = makePipeline(res, pumpedQ, collectWs);
 
           pump(pipeline, function(err) {
             if (err) return reject(err);
+            return resolve();
           });
         });
       });
@@ -234,12 +237,12 @@ function normalizeOptions(options, data) {
     var restOpts = pick(restOptsKeys, options);
 
     if (needSendData(restOpts.method)) {
-      var headers = restOpts.headers || {};
+      var headers = {};
       headers['Content-Type'] = getReqCTypeStr[restOpts.sendType];
       if (restOpts.sendType === 'json') {
         headers['Accept'] = "application/json, text/*";
       }
-      restOpts.headers = headers;
+      restOpts.headers = extend({}, headers, restOpts.headers);
     }
     requestOptions = extend({}, uriOpts, restOpts);
   }
@@ -333,24 +336,24 @@ function isRedirect(statusCode) {
 
 // if (require.main === module) {
 //   var through = require('through2');
-//   var request = reqx.get('https://www.google.com').redirect(true).send({
-//     a: 1,
-//     b: 2
-//   });
+//   var request = reqx.get('https://www.google.com').redirect(true).send();
 
 //   var strThrough = through();
 //   strThrough.setEncoding('utf8');
 
-//   request.pump(strThrough).collect(function(res, done) {
-//     return concatStream(function(body) {
-//       done({
-//         statusCode: res.statusCode,
-//         headers: res.headers,
-//         body: body
-//       });
-//     });
-//   }).then(console.log.bind(console)).catch(console.log.bind(console));
+//   request.pump(strThrough).collect()
+//     .then(function(result){
+//       return result.response.headers;
+//     })
+//     .then(console.log.bind(console))
+//     .catch(console.log.bind(console));
 
 
 //   // request.abort();
+// }
+
+// if(require.main === module){
+//   var through = require('through2');
+//   var fs = require('fs');
+//   var request = reqx.get('https://www.google.com').redirect(true).send().pump(through(), through()).collect(fs.createWriteStream(__dirname + '/out')).then(console.log.bind(console, 'reqx finished!'));
 // }
