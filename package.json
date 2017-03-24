@@ -1,6 +1,6 @@
 {
   "name": "reqx",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "lite wrapper for node http(s).request that is stream-friendly",
   "repository": "https://github.com/ybybzj/reqx.git",
   "main": "index.js",
