@@ -55,19 +55,15 @@ reqx
   .send({
     id: xxx
   })
-  .collect(function(res, done, onErr){
-    var ws = concat(function(body){
-      if(res.statusCode < 400){
-        return done(JSON.parse(body));
-      }
-      onErr({
-        statusCode: res.statusCode,
-        headers: res.headers,
-        body: body
-      })
-    });
-    ws.setEncoding('utf8');
-    return ws;
+  .collect(function(res){
+    if(res.statusCode < 400){
+      return JSON.parse(body);
+    }
+    throw {
+      statusCode: res.statusCode,
+      headers: res.headers,
+      body: body
+    };
   })
   .then(function(result){
     
