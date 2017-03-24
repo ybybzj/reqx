@@ -289,6 +289,7 @@ function stringifyByType(type, o) {
 }
 
 function needSendData(method) {
+  method = method.toLowerCase();
   return method === 'post' || method === 'put' || method === 'patch';
 }
 
