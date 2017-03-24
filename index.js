@@ -238,7 +238,7 @@ function normalizeOptions(options, data) {
 
     if (needSendData(restOpts.method)) {
       var headers = {};
-      headers['Content-Type'] = getReqCTypeStr[restOpts.sendType];
+      headers['Content-Type'] = getReqCTypeStr(restOpts.sendType);
       if (restOpts.sendType === 'json') {
         headers['Accept'] = "application/json, text/*";
       }
