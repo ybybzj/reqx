@@ -100,6 +100,7 @@ function sendRequest(options, data, reqxBuilder) {
   promise = new BPromise(function(resolve, reject) {
     clientRequest.on('response', function(response) {
       if (response) {
+        response.finalRequestOptions = requestOptions;
         return resolve(response);
       }
       reject(new Error('[reqx]empty response!'));
@@ -184,6 +185,7 @@ function extendClinetRequest(crq) {
               var rtn = {
                 statusCode: res.statusCode,
                 response: res,
+                requestOptions: res.finalRequestOptions,
                 body: body
               };
 
